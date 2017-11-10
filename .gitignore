@@ -1,0 +1,4 @@
+*.log
+*.error
+*.pyc
+libs/__pycache__

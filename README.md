@@ -5,15 +5,16 @@ Script em python para rastrear objetos dos correios
 
 ## Exemplos
 
-Com um código
+Ha duas formas de executar o script.
 
-`rastreio PO938188265BR`
+A primeira é executando o script normalmente
+`python3 main.py`
+e depois colocar os codigos de rastreios dentro.
 
+A outra é passando os parametros direto ao chamar o proprio script:
 
-Com mais de um código
+`python3 main.py PO938188265BR`
 
-`rastreio PO938188265BR,PO919443331BR`
+Para colocar mais de um número de rastreio, basta separa-los por espaço, por exemplo:
 
-&nbsp;
-
-![DFU MODE](https://image.ibb.co/jdh9Cb/Captura_de_tela_de_2017_11_09_16_56_33.png)
+`python3 main.py PO938188265BR PO938188265BR PO938188265BR PO938188265BR`
