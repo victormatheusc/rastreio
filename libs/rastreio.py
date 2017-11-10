@@ -1,39 +1,20 @@
 import re
 import requests
 from lxml import html
-from libs.variaveis import Cor
-
-def cabecalho(codigo):
-    print("""{verde}
-        ###################
-        #  {padrao}{codigo}{verde}  #
-        ###################
-    """.format(
-            verde=Cor.verde.value,
-            padrao=Cor.padrao.value,
-            codigo=codigo)
-        )
 
 class Correios():
+    def rastrear(obj):
+        def escape(lista):
+            texto = " ".join(str(item) for item in lista)
+            texto = texto.replace("\r", " ").replace("\t", " ").replace("\xa0", " ").strip()
+            return re.sub(' +', ' ', texto)
 
-    def __init__(self, codigo):
-        cabecalho(codigo)
-        self.rastreio(codigo)
-
-    def escape(self, lista):
-        text = " ".join(str(item) for item in lista)
-        text = text.replace("\r", " ").replace("\t", " ").replace("\xa0", " ").strip()
-        return re.sub(' +', ' ', text)
-
-    def rastreio(self, obj):
-        s = requests.Session()
-
+        sessao = requests.Session()
         obj_post = {
             'objetos': obj,
             'btnPesq': '+Buscar'
         }
-
-        s.headers.update({
+        sessao.headers.update({
             'Host': 'www2.correios.com.br',
             'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:56.0) Gecko/20100101 Firefox/56.0',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -45,25 +26,36 @@ class Correios():
             'Connection': 'keep-alive',
             'Upgrade-Insecure-Requests': '1'
         })
-        r = s.post('http://www2.correios.com.br/sistemas/rastreamento/resultado.cfm?', data=obj_post, allow_redirects=True)
-        r.encoding = 'ISO-8859-1'
+        req = sessao.post('http://www2.correios.com.br/sistemas/rastreamento/resultado.cfm?', data=obj_post, allow_redirects=True)
+        req.encoding = 'ISO-8859-1'
+        retorno = {"codigo": obj}
+        if req.status_code == 200:
+            if req.text.find('listEvent') == -1:
+                erro = "Erro na requisição"
+                retorno["erro"] = erro
+                print("[#] " + erro)
+                return retorno
 
-        if r.status_code == 200:
-            if r.text.find('listEvent') == -1:
-                print(Cor.amarelo.value+'['+Cor.vermelho.value+'#'+Cor.amarelho.value+'] Erro na requisição')
-                return None
-
-            tree = html.fromstring(r.text.encode('latin1'))
+            tree = html.fromstring(req.text.encode('latin1'))
             trs = tree.xpath('//table[contains(@class,"listEvent")]/tr')
 
+            movimentacoes = []
             for tr in trs:
                 tds = tr.xpath('./td')
 
-                data = self.escape(tds[0].xpath('./text() | ./label/text()'))
-                text = self.escape(tds[1].xpath('./text()'))
-                status = tds[1].xpath('./strong/text()')[0]
+                movimentacoes.append(
+                    {
+                        "data": escape(tds[0].xpath('./text() | ./label/text()')),
+                        "status": tds[1].xpath('./strong/text()')[0],
+                        "texto": escape(tds[1].xpath('./text()'))
+                    }
+                )
 
-                print(Cor.amarelo.value + data)
-                print(Cor.ciano.value + status)
-                print(Cor.padrao.value + text)
-                print(Cor.roxo.value + '-'*50 + Cor.padrao.value)
+            retorno["movimentacoes"] = movimentacoes
+            return retorno
+
+        else:
+            erro = "Erro ao verificar as movimentações"
+            retorno["erro"] = erro
+            print("[#] " + erro)
+            return retorno
