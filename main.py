@@ -1,10 +1,7 @@
-#! /usr/bin/python
-# -*- coding: utf-8 -*-
-
-from lxml import html
-import requests
-import argparse
 import re
+import sys
+import requests
+from lxml import html
 
 R = '\033[0;31m' # red
 G = '\033[0;32m' # green
@@ -13,9 +10,9 @@ C = '\033[0;36m' # cyan
 P = '\033[0;35m' # purple
 D = '\033[0;0m'  # default
 
-def escape(strarr):
-    text = ' '.join(strarr).encode('latin1')
-    text = text.replace('\r', ' ').replace('\t', ' ').replace('\xa0', ' ').strip()
+def escape(lista):
+    text = " ".join(str(item) for item in lista)
+    text = text.replace("\r", " ").replace("\t", " ").replace("\xa0", " ").strip()
     return re.sub(' +', ' ', text)
 
 def rastreio(obj):
@@ -25,6 +22,7 @@ def rastreio(obj):
         'objetos': obj,
         'btnPesq': '+Buscar'
     }
+
     s.headers.update({
         'Host': 'www2.correios.com.br',
         'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:56.0) Gecko/20100101 Firefox/56.0',
@@ -42,7 +40,7 @@ def rastreio(obj):
 
     if r.status_code == 200:
         if r.text.find('listEvent') == -1:
-            print Y+'['+R+'#'+Y+'] Erro na requisição'
+            print(Y+'['+R+'#'+Y+'] Erro na requisição')
             return None
 
         tree = html.fromstring(r.text.encode('latin1'))
@@ -55,30 +53,37 @@ def rastreio(obj):
             text = escape(tds[1].xpath('./text()'))
             status = tds[1].xpath('./strong/text()')[0]
 
-            print Y + data
-            print C + status
-            print D + text
-            print P + '--------------------------------------------------' + D
+            print(Y + data)
+            print(C + status)
+            print(D + text)
+            print(P + '--------------------------------------------------' + D)
 
-def header(cod):
-    print G+'''
+def cabecalho(cod):
+    print(G+'''
         ###################
         #  %s%s%s  #
         ###################
-    ''' % (D,cod,G)
+    ''' % (D,cod,G))
+
+def main(codigos):
+    for codigo in codigos:
+        cabecalho(codigo)
+        rastreio(codigo)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        prog='rastreio',
-        usage='%(prog)s <codigo[,codigo2,codigo3]>',
-        description='Rastreio dos correios'
-    )
-
-    parser.add_argument("c", metavar="cod", type=str, help="word to rotate")
-    args = parser.parse_args()
-    codigos = [cod for cod in args.c.split(',') if len(cod) == 13]
-
-    if len(codigos) >= 1:
-        for cod in codigos:
-            header(cod)
-            rastreio(cod)
+    # parser = argparse.ArgumentParser(
+    #     prog='rastreio',
+    #     usage='%(prog)s <codigo[,codigo2,codigo3]>',
+    #     description='Rastreio dos correios'
+    # )
+    #
+    # parser.add_argument("c", metavar="cod", type=str, help="word to rotate")
+    # args = parser.parse_args()
+    # codigos = [cod for cod in args.c.split(',') if len(cod) == 13]
+    argumentos = [codigo for codigo in sys.argv[1:]]
+    if argumentos:
+        main(argumentos)
+    else:
+        print("Digite o(s) codigo(s) a ser(em) rastreado(s) [OBS: Separados por espaço somente]: ", end="")
+        codigos = [item for item in input().strip().split(" ")]
+        main(codigos)
