@@ -33,7 +33,7 @@ class Correios():
             if req.text.find('listEvent') == -1:
                 erro = "Erro na requisição"
                 retorno["erro"] = erro
-                print("[#] " + erro)
+                # print("[#] " + erro)
                 return retorno
 
             tree = html.fromstring(req.text.encode('latin1'))
@@ -57,5 +57,5 @@ class Correios():
         else:
             erro = "Erro ao verificar as movimentações"
             retorno["erro"] = erro
-            print("[#] " + erro)
+            # print("[#] " + erro)
             return retorno
