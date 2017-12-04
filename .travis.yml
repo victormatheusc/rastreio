@@ -3,5 +3,5 @@ python:
   - 3.5
 install:
   - make install
-test:
+script:
   - make test
