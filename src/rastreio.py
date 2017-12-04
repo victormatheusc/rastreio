@@ -2,6 +2,36 @@ import re
 import requests
 from lxml import html
 
+class Cainiao():
+    # http://global.cainiao.com
+    pass
+
+class Track17():
+    def rastrear(codigo):
+        session = requests.Session()
+        tracker_url = 'http://www.17track.net/restapi/handlertrack.ashx'
+        headers = {
+            "Accept": "*/*",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "Origin": "http://www.17track.net",
+            "Referer": "http://www.17track.net/pt/track?nums={package}&fc=0",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36",
+            "X-Requested-With": "XMLHttpRequest"
+        }
+        form_data = '{{"guid":"","data":[{{"num":"{package}"}}]}}'
+
+        lheaders = headers
+        lheaders['Referer'] = lheaders['Referer'].format(package=package)
+        lform = form_data.format(package=package)
+        r = session.post(tracker_url, headers=lheaders, data=lform)
+        d = {}
+        data = r.json()
+        print(data)
+        print(type(data))
+        debug = input("DEBUG")
+        if data["dat"]["track"] == None:
+            print("Sem")
+
 class Correios():
     def rastrear(obj):
         def escape(lista):
@@ -57,5 +87,8 @@ class Correios():
         else:
             erro = "Erro ao verificar as movimentações"
             retorno["erro"] = erro
-            # print("[#] " + erro)
             return retorno
+
+
+if __name__ == '__main__':
+    print(Correios.rastrear("RF955476774CN"))
